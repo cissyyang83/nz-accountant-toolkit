@@ -1,0 +1,23 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Temporary Office files
+~$*.xlsx
+~$*.docx
+~$*.pptx
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local environment
+.env
+.env.local
+
+# Build output
+dist/
+build/
+

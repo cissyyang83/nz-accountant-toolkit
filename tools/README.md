@@ -14,6 +14,7 @@ nz-accountant-toolkit quick-sale --sale-price 900000 --purchase-price 760000 --a
 
 ## Tool Documents
 
+- [FIF Web Calculator](fif-web-calculator.html)
 - [FIF Calculator](fif-calculator.md)
 - [Quick Sale Calculator](quick-sale-calculator.md)
 - [GST Reconciliation Tool](gst-reconciliation-tool.md)

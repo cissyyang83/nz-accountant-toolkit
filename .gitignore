@@ -20,4 +20,4 @@ venv/
 # Build output
 dist/
 build/
-
+outputs/

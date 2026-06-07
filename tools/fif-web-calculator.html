@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NZ FIF Calculator</title>
+  <style>
+    :root {
+      --ink: #102a33;
+      --muted: #53666d;
+      --line: #d7e0e3;
+      --panel: #f6faf9;
+      --input: #fff7d6;
+      --teal: #0f766e;
+      --teal-dark: #0d4b4f;
+      --blue: #244c7a;
+      --warn: #fff1f2;
+      --warn-ink: #9f1239;
+      --ok: #e7f8ee;
+      --ok-ink: #166534;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: #eef4f5;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      background: var(--teal-dark);
+      color: var(--white);
+      padding: 18px 24px;
+      border-bottom: 4px solid var(--teal);
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 0;
+      color: #d5eeee;
+      max-width: 1100px;
+    }
+
+    main {
+      padding: 18px;
+      display: grid;
+      grid-template-columns: minmax(390px, 0.95fr) minmax(460px, 1.05fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    section {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      background: var(--teal);
+      color: var(--white);
+      padding: 10px 12px;
+      font-weight: 700;
+    }
+
+    .section-body {
+      padding: 12px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button, .file-label {
+      border: 1px solid #8fb5b2;
+      border-radius: 4px;
+      background: var(--white);
+      color: var(--teal-dark);
+      padding: 7px 10px;
+      cursor: pointer;
+      font-weight: 700;
+      min-height: 34px;
+    }
+
+    button.primary {
+      background: var(--teal-dark);
+      color: var(--white);
+      border-color: var(--teal-dark);
+    }
+
+    button.warn {
+      color: var(--warn-ink);
+      border-color: #f5b2bf;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-weight: 700;
+      min-width: 0;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #cbd6da;
+      border-radius: 4px;
+      padding: 7px 8px;
+      color: var(--ink);
+      background: var(--input);
+      min-height: 34px;
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--white);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 920px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 6px 7px;
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    th {
+      background: var(--teal);
+      color: var(--white);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    td input, td select {
+      min-width: 110px;
+      border: 0;
+      border-radius: 0;
+      padding: 5px;
+      background: var(--input);
+    }
+
+    td .wide {
+      min-width: 170px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px;
+      min-height: 76px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      color: var(--teal-dark);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      border: 0;
+      border-radius: 4px 4px 0 0;
+      color: var(--ink);
+      background: #edf3f4;
+      padding: 8px 11px;
+    }
+
+    .tab.active {
+      background: var(--teal-dark);
+      color: var(--white);
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .status {
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--line);
+      margin: 10px 0;
+      background: var(--panel);
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .status.warn {
+      background: var(--warn);
+      color: var(--warn-ink);
+      border-color: #f5b2bf;
+    }
+
+    .chip {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-weight: 700;
+      background: var(--ok);
+      color: var(--ok-ink);
+    }
+
+    .chip.review {
+      background: var(--warn);
+      color: var(--warn-ink);
+    }
+
+    .note {
+      color: var(--muted);
+      margin: 8px 0 0;
+    }
+
+    .rules-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .rules-list li {
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 980px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      header {
+        padding: 14px;
+      }
+
+      main {
+        padding: 10px;
+      }
+
+      .grid, .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Foreign investment fund calculator</h1>
+      <p>FDR, comparative value and cost method workpaper calculator for New Zealand practitioners. Amounts should be entered in NZD after applying a consistent currency conversion approach.</p>
+    </header>
+
+    <main>
+      <div>
+        <section>
+          <div class="section-title">
+            <span>Client and import</span>
+            <div class="toolbar">
+              <button type="button" id="sampleBtn">Load example</button>
+              <button type="button" class="warn" id="clearBtn">Clear</button>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="grid">
+              <label>Client / workpaper reference
+                <input id="clientName" value="Example client">
+              </label>
+              <label>Income year ending
+                <input id="taxYear" value="31/03/2026">
+              </label>
+              <label>Currency conversion method
+                <input id="currencyMethod" value="Actual / mid-month rates">
+              </label>
+              <label>Prepared by
+                <input id="preparedBy" placeholder="Optional">
+              </label>
+            </div>
+
+            <div class="status">
+              CSV columns accepted: investment_name, date, description, purchase_shares, purchase_cost_nzd, disposal_shares, disposal_proceeds_nzd, dividend_nzd, or type/shares/amount_nzd.
+            </div>
+
+            <div class="toolbar">
+              <label class="file-label">Import transaction CSV
+                <input id="csvFile" type="file" accept=".csv,text/csv">
+              </label>
+              <button type="button" id="parseTextBtn">Import pasted CSV</button>
+              <button type="button" id="downloadSampleBtn">Download sample CSV</button>
+            </div>
+            <textarea id="csvText" spellcheck="false" placeholder="Paste CSV transactions here, then choose Import pasted CSV."></textarea>
+          </div>
+        </section>
+
+        <section style="margin-top:16px">
+          <div class="section-title">
+            <span>Holdings</span>
+            <div class="toolbar">
+              <button type="button" id="addHoldingBtn">Add holding</button>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="table-wrap">
+              <table id="holdingsTable">
+                <thead>
+                  <tr>
+                    <th>Investment name</th>
+                    <th>FDR permitted</th>
+                    <th>Can compare FDR/CV</th>
+                    <th>Opening market value</th>
+                    <th>Closing market value</th>
+                    <th>Opening shares</th>
+                    <th>Closing shares</th>
+                    <th>Other CV costs</th>
+                    <th>Foreign tax credits</th>
+                    <th>Cost opening basis</th>
+                    <th>Manual cost opening value</th>
+                    <th>Last year opening value</th>
+                    <th>Previous year shares</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="holdingsBody"></tbody>
+              </table>
+            </div>
+            <p class="note">Use one row for each FIF / share class. Transaction rows match by investment name.</p>
+          </div>
+        </section>
+      </div>
+
+      <div>
+        <section>
+          <div class="section-title">
+            <span>Results</span>
+            <div class="toolbar">
+              <button type="button" class="primary" id="exportBtn">Export result to Excel</button>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="summary">
+              <div class="metric"><span>FDR total</span><strong id="fdrTotal">$0</strong></div>
+              <div class="metric"><span>CV total</span><strong id="cvTotal">$0</strong></div>
+              <div class="metric"><span>Cost method total</span><strong id="costTotal">$0</strong></div>
+              <div class="metric"><span>Lower FDR/CV review</span><strong id="lowerTotal">$0</strong></div>
+            </div>
+
+            <div class="tabs" role="tablist">
+              <button type="button" class="tab active" data-panel="summaryPanel">Summary</button>
+              <button type="button" class="tab" data-panel="txPanel">Transactions</button>
+              <button type="button" class="tab" data-panel="rulesPanel">Rules</button>
+            </div>
+
+            <div class="panel active" id="summaryPanel">
+              <div class="table-wrap">
+                <table id="resultsTable">
+                  <thead>
+                    <tr>
+                      <th>Investment</th>
+                      <th>Purchases</th>
+                      <th>Disposals</th>
+                      <th>Average cost</th>
+                      <th>Peak holding amount</th>
+                      <th>Actual gain</th>
+                      <th>FDR quick sale</th>
+                      <th>FDR income</th>
+                      <th>CV before floor</th>
+                      <th>CV income</th>
+                      <th>Cost opening value</th>
+                      <th>Cost method income</th>
+                      <th>Review</th>
+                    </tr>
+                  </thead>
+                  <tbody id="resultsBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel" id="txPanel">
+              <div class="table-wrap">
+                <table id="transactionsTable">
+                  <thead>
+                    <tr>
+                      <th>Investment</th>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Purchase shares</th>
+                      <th>Purchase cost NZD</th>
+                      <th>Disposal shares</th>
+                      <th>Disposal proceeds NZD</th>
+                      <th>Dividend / holding gain NZD</th>
+                    </tr>
+                  </thead>
+                  <tbody id="transactionsBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel" id="rulesPanel">
+              <ul class="rules-list">
+                <li>FDR annual method: 5% of opening market value plus quick sale adjustment.</li>
+                <li>FDR quick sale adjustment: the lesser of peak holding method amount and actual gain.</li>
+                <li>Peak holding method amount: 5% x peak holding differential x average cost. Peak holding differential is the lesser of peak minus opening shares and peak minus closing shares.</li>
+                <li>CV method: closing market value plus gains, less opening market value plus costs. This tool includes disposal proceeds, dividends/holding gains and foreign tax credits as gains, and purchase costs plus other CV costs as costs.</li>
+                <li>Where FDR/CV choice is available, CV is floored at zero in this tool. Review non-ordinary share and other special cases separately.</li>
+                <li>Cost method: 5% of cost-method opening value plus the peak holding method amount.</li>
+                <li>This tool follows Inland Revenue's main calculator methods only. It does not decide exemptions, method eligibility, disclosure requirements, tax credits, DRR, RAM, or attributable FIF income.</li>
+              </ul>
+              <p class="note">Sources: Inland Revenue calculate-my-FIF-income page, online help for the FIF calculator, and IR461 Guide to foreign investment funds.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const sampleTransactions = `investment_name,date,description,purchase_shares,purchase_cost_nzd,disposal_shares,disposal_proceeds_nzd,dividend_nzd
+Example Company A,2025-10-01,Acquisition,5000,110000,0,0,0
+Example Company A,2025-12-01,Disposal,0,0,4000,100000,0
+Example Company A,2025-12-23,Acquisition,2000,44000,0,0,0`;
+
+    const costBasisOptions = [
+      "Manual",
+      "First year (zero)",
+      "Audited NAV",
+      "Independent valuation",
+      "Same holding",
+      "Increased holding",
+      "Decreased holding"
+    ];
+
+    let holdings = [];
+    let transactions = [];
+
+    const els = {
+      holdingsBody: document.getElementById("holdingsBody"),
+      resultsBody: document.getElementById("resultsBody"),
+      transactionsBody: document.getElementById("transactionsBody"),
+      csvText: document.getElementById("csvText"),
+      csvFile: document.getElementById("csvFile"),
+      fdrTotal: document.getElementById("fdrTotal"),
+      cvTotal: document.getElementById("cvTotal"),
+      costTotal: document.getElementById("costTotal"),
+      lowerTotal: document.getElementById("lowerTotal")
+    };
+
+    function money(value) {
+      if (value === null || Number.isNaN(value)) return "Review";
+      return new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD", maximumFractionDigits: 2 }).format(value);
+    }
+
+    function number(value) {
+      return new Intl.NumberFormat("en-NZ", { maximumFractionDigits: 4 }).format(value || 0);
+    }
+
+    function toNumber(value) {
+      if (value === null || value === undefined || value === "") return 0;
+      const clean = String(value).replace(/[$,\s]/g, "");
+      const parsed = Number(clean);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function yesNo(value) {
+      return String(value || "").trim().toLowerCase().startsWith("y");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === '"' && quoted && next === '"') {
+          cell += '"';
+          i++;
+        } else if (char === '"') {
+          quoted = !quoted;
+        } else if (char === "," && !quoted) {
+          row.push(cell);
+          cell = "";
+        } else if ((char === "\n" || char === "\r") && !quoted) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(cell);
+          if (row.some((item) => item.trim() !== "")) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += char;
+        }
+      }
+      row.push(cell);
+      if (row.some((item) => item.trim() !== "")) rows.push(row);
+      if (rows.length < 2) return [];
+      const headers = rows[0].map((header) => header.trim().toLowerCase());
+      return rows.slice(1).map((values) => {
+        const record = {};
+        headers.forEach((header, index) => record[header] = (values[index] || "").trim());
+        return normaliseTransaction(record);
+      }).filter((record) => record.investmentName);
+    }
+
+    function normaliseTransaction(row) {
+      const type = String(row.type || row.action || "").toLowerCase();
+      const shares = toNumber(row.shares || row.units || row.quantity);
+      const amount = toNumber(row.amount_nzd || row.amount || row.value_nzd);
+      const purchaseByType = type.includes("buy") || type.includes("acq") || type.includes("purchase");
+      const disposalByType = type.includes("sell") || type.includes("sale") || type.includes("disposal");
+      const dividendByType = type.includes("dividend") || type.includes("distribution");
+      return {
+        investmentName: row.investment_name || row.investment || row.name || row.fif_name || "",
+        date: row.date || row.transaction_date || "",
+        description: row.description || row.reference || row.type || "",
+        purchaseShares: toNumber(row.purchase_shares || row.buy_shares || (purchaseByType ? shares : 0)),
+        purchaseCost: toNumber(row.purchase_cost_nzd || row.purchase_amount_nzd || row.cost_nzd || (purchaseByType ? amount : 0)),
+        disposalShares: toNumber(row.disposal_shares || row.sale_shares || row.sell_shares || (disposalByType ? shares : 0)),
+        disposalProceeds: toNumber(row.disposal_proceeds_nzd || row.sale_proceeds_nzd || row.proceeds_nzd || (disposalByType ? amount : 0)),
+        dividend: toNumber(row.dividend_nzd || row.dividends || row.distribution_nzd || row.holding_gain_nzd || (dividendByType ? amount : 0))
+      };
+    }
+
+    function defaultHolding() {
+      return {
+        investmentName: "Example Company A",
+        fdrPermitted: "Yes",
+        canCompare: "Yes",
+        openingMarketValue: 200000,
+        closingMarketValue: 254000,
+        openingShares: 10000,
+        closingShares: 13000,
+        otherCvCosts: 0,
+        foreignTaxCredits: 0,
+        costBasis: "Manual",
+        manualCostOpeningValue: 200000,
+        lastYearOpeningValue: 190000,
+        previousYearShares: 10000
+      };
+    }
+
+    function addHolding(data = {}) {
+      holdings.push({ ...defaultHolding(), investmentName: "", openingMarketValue: 0, closingMarketValue: 0, openingShares: 0, closingShares: 0, manualCostOpeningValue: 0, lastYearOpeningValue: 0, previousYearShares: 0, ...data });
+      render();
+    }
+
+    function loadExample() {
+      holdings = [defaultHolding()];
+      transactions = parseCsv(sampleTransactions);
+      els.csvText.value = sampleTransactions;
+      render();
+    }
+
+    function calculateHolding(holding) {
+      const related = transactions
+        .filter((tx) => tx.investmentName.trim().toLowerCase() === holding.investmentName.trim().toLowerCase())
+        .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+      const totalPurchaseShares = related.reduce((sum, tx) => sum + tx.purchaseShares, 0);
+      const totalPurchases = related.reduce((sum, tx) => sum + tx.purchaseCost, 0);
+      const totalDisposalShares = related.reduce((sum, tx) => sum + tx.disposalShares, 0);
+      const totalDisposals = related.reduce((sum, tx) => sum + tx.disposalProceeds, 0);
+      const totalDividends = related.reduce((sum, tx) => sum + tx.dividend, 0);
+      const averageCost = totalPurchaseShares > 0 ? totalPurchases / totalPurchaseShares : 0;
+
+      let runningShares = toNumber(holding.openingShares);
+      let peakShares = Math.max(runningShares, toNumber(holding.closingShares));
+      let usedSameYearAcquisitions = 0;
+      let cumulativePurchases = 0;
+      let actualGain = 0;
+
+      related.forEach((tx) => {
+        const priorAcquisitionsAvailable = Math.max(0, cumulativePurchases - usedSameYearAcquisitions);
+        const quickSaleShares = tx.disposalShares > 0 ? Math.min(tx.disposalShares, priorAcquisitionsAvailable) : 0;
+        if (quickSaleShares > 0) {
+          const salePricePerShare = tx.disposalShares > 0 ? tx.disposalProceeds / tx.disposalShares : 0;
+          actualGain += Math.max(0, quickSaleShares * (salePricePerShare - averageCost));
+          usedSameYearAcquisitions += quickSaleShares;
+        }
+        cumulativePurchases += tx.purchaseShares;
+        runningShares += tx.purchaseShares - tx.disposalShares;
+        peakShares = Math.max(peakShares, runningShares);
+      });
+
+      const openingShares = toNumber(holding.openingShares);
+      const closingShares = toNumber(holding.closingShares);
+      const peakDifferential = Math.max(0, Math.min(peakShares - openingShares, peakShares - closingShares));
+      const peakHoldingAmount = 0.05 * peakDifferential * averageCost;
+      const fdrQuickSale = Math.min(peakHoldingAmount, actualGain);
+      const fdrIncome = yesNo(holding.fdrPermitted) ? 0.05 * toNumber(holding.openingMarketValue) + fdrQuickSale : null;
+      const cvBeforeFloor = toNumber(holding.closingMarketValue) + totalDisposals + totalDividends + toNumber(holding.foreignTaxCredits) - toNumber(holding.openingMarketValue) - totalPurchases - toNumber(holding.otherCvCosts);
+      const cvIncome = yesNo(holding.canCompare) ? Math.max(0, cvBeforeFloor) : cvBeforeFloor;
+      const costOpeningValue = calculateCostOpeningValue(holding, averageCost);
+      const costIncome = 0.05 * costOpeningValue + peakHoldingAmount;
+      const lowerFdrCv = fdrIncome === null ? null : Math.min(fdrIncome, cvIncome);
+      const review = buildReview(holding, related, fdrIncome);
+
+      return {
+        holding,
+        related,
+        totalPurchaseShares,
+        totalPurchases,
+        totalDisposalShares,
+        totalDisposals,
+        totalDividends,
+        averageCost,
+        peakShares,
+        peakDifferential,
+        peakHoldingAmount,
+        actualGain,
+        fdrQuickSale,
+        fdrIncome,
+        cvBeforeFloor,
+        cvIncome,
+        costOpeningValue,
+        costIncome,
+        lowerFdrCv,
+        review
+      };
+    }
+
+    function calculateCostOpeningValue(holding, averageCost) {
+      const openingShares = toNumber(holding.openingShares);
+      const previousShares = toNumber(holding.previousYearShares);
+      switch (holding.costBasis) {
+        case "First year (zero)": return 0;
+        case "Audited NAV":
+        case "Independent valuation":
+        case "Manual": return toNumber(holding.manualCostOpeningValue);
+        case "Same holding": return 1.05 * toNumber(holding.lastYearOpeningValue);
+        case "Increased holding": return 1.05 * toNumber(holding.lastYearOpeningValue) + Math.max(0, openingShares - previousShares) * averageCost;
+        case "Decreased holding": return previousShares > 0 ? (openingShares / previousShares) * 1.05 * toNumber(holding.lastYearOpeningValue) : 0;
+        default: return toNumber(holding.manualCostOpeningValue);
+      }
+    }
+
+    function buildReview(holding, related, fdrIncome) {
+      const notes = [];
+      if (!holding.investmentName) notes.push("Add investment name");
+      if (fdrIncome === null) notes.push("FDR not permitted");
+      if (toNumber(holding.openingMarketValue) <= 0 && yesNo(holding.fdrPermitted)) notes.push("Opening market value required");
+      if (toNumber(holding.openingShares) + related.reduce((sum, tx) => sum + tx.purchaseShares - tx.disposalShares, 0) !== toNumber(holding.closingShares)) notes.push("Share count does not reconcile");
+      if (holding.costBasis === "Audited NAV" || holding.costBasis === "Independent valuation") notes.push("Keep valuation support");
+      notes.push("Confirm FIF eligibility and method consistency");
+      return notes;
+    }
+
+    function calculateAll() {
+      return holdings.map(calculateHolding);
+    }
+
+    function renderHoldings() {
+      els.holdingsBody.innerHTML = holdings.map((holding, index) => `
+        <tr>
+          <td><input class="wide" data-holding="${index}" data-field="investmentName" value="${escapeHtml(holding.investmentName)}"></td>
+          <td>${selectHtml(index, "fdrPermitted", ["Yes", "No"], holding.fdrPermitted)}</td>
+          <td>${selectHtml(index, "canCompare", ["Yes", "No"], holding.canCompare)}</td>
+          <td><input data-holding="${index}" data-field="openingMarketValue" value="${holding.openingMarketValue}"></td>
+          <td><input data-holding="${index}" data-field="closingMarketValue" value="${holding.closingMarketValue}"></td>
+          <td><input data-holding="${index}" data-field="openingShares" value="${holding.openingShares}"></td>
+          <td><input data-holding="${index}" data-field="closingShares" value="${holding.closingShares}"></td>
+          <td><input data-holding="${index}" data-field="otherCvCosts" value="${holding.otherCvCosts}"></td>
+          <td><input data-holding="${index}" data-field="foreignTaxCredits" value="${holding.foreignTaxCredits}"></td>
+          <td>${selectHtml(index, "costBasis", costBasisOptions, holding.costBasis)}</td>
+          <td><input data-holding="${index}" data-field="manualCostOpeningValue" value="${holding.manualCostOpeningValue}"></td>
+          <td><input data-holding="${index}" data-field="lastYearOpeningValue" value="${holding.lastYearOpeningValue}"></td>
+          <td><input data-holding="${index}" data-field="previousYearShares" value="${holding.previousYearShares}"></td>
+          <td><button type="button" data-remove="${index}">Remove</button></td>
+        </tr>
+      `).join("");
+    }
+
+    function selectHtml(index, field, options, selected) {
+      return `<select data-holding="${index}" data-field="${field}">${options.map((option) => `<option ${option === selected ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}</select>`;
+    }
+
+    function renderResults(results) {
+      els.resultsBody.innerHTML = results.map((row) => `
+        <tr>
+          <td>${escapeHtml(row.holding.investmentName)}</td>
+          <td>${money(row.totalPurchases)}</td>
+          <td>${money(row.totalDisposals)}</td>
+          <td>${money(row.averageCost)}</td>
+          <td>${money(row.peakHoldingAmount)}</td>
+          <td>${money(row.actualGain)}</td>
+          <td>${money(row.fdrQuickSale)}</td>
+          <td>${money(row.fdrIncome)}</td>
+          <td>${money(row.cvBeforeFloor)}</td>
+          <td>${money(row.cvIncome)}</td>
+          <td>${money(row.costOpeningValue)}</td>
+          <td>${money(row.costIncome)}</td>
+          <td>${row.review.map((note) => `<span class="chip review">${escapeHtml(note)}</span>`).join(" ")}</td>
+        </tr>
+      `).join("");
+
+      const fdrTotal = results.reduce((sum, row) => sum + (row.fdrIncome || 0), 0);
+      const cvTotal = results.reduce((sum, row) => sum + row.cvIncome, 0);
+      const costTotal = results.reduce((sum, row) => sum + row.costIncome, 0);
+      const lowerTotal = results.reduce((sum, row) => sum + (row.lowerFdrCv || 0), 0);
+      els.fdrTotal.textContent = money(fdrTotal);
+      els.cvTotal.textContent = money(cvTotal);
+      els.costTotal.textContent = money(costTotal);
+      els.lowerTotal.textContent = money(lowerTotal);
+    }
+
+    function renderTransactions() {
+      els.transactionsBody.innerHTML = transactions.map((tx) => `
+        <tr>
+          <td>${escapeHtml(tx.investmentName)}</td>
+          <td>${escapeHtml(tx.date)}</td>
+          <td>${escapeHtml(tx.description)}</td>
+          <td>${number(tx.purchaseShares)}</td>
+          <td>${money(tx.purchaseCost)}</td>
+          <td>${number(tx.disposalShares)}</td>
+          <td>${money(tx.disposalProceeds)}</td>
+          <td>${money(tx.dividend)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function render() {
+      renderHoldings();
+      const results = calculateAll();
+      renderResults(results);
+      renderTransactions();
+    }
+
+    function download(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportExcel() {
+      const results = calculateAll();
+      const summaryRows = [
+        ["Client", document.getElementById("clientName").value],
+        ["Income year ending", document.getElementById("taxYear").value],
+        ["Currency conversion method", document.getElementById("currencyMethod").value],
+        ["Prepared by", document.getElementById("preparedBy").value],
+        [],
+        ["Investment", "Purchases", "Disposals", "Average cost", "Peak holding amount", "Actual gain", "FDR quick sale", "FDR income", "CV before floor", "CV income", "Cost opening value", "Cost method income", "Review notes"],
+        ...results.map((row) => [
+          row.holding.investmentName,
+          row.totalPurchases,
+          row.totalDisposals,
+          row.averageCost,
+          row.peakHoldingAmount,
+          row.actualGain,
+          row.fdrQuickSale,
+          row.fdrIncome === null ? "Review FDR eligibility" : row.fdrIncome,
+          row.cvBeforeFloor,
+          row.cvIncome,
+          row.costOpeningValue,
+          row.costIncome,
+          row.review.join("; ")
+        ])
+      ];
+
+      const transactionRows = [
+        ["Investment", "Date", "Description", "Purchase shares", "Purchase cost NZD", "Disposal shares", "Disposal proceeds NZD", "Dividend / holding gain NZD"],
+        ...transactions.map((tx) => [tx.investmentName, tx.date, tx.description, tx.purchaseShares, tx.purchaseCost, tx.disposalShares, tx.disposalProceeds, tx.dividend])
+      ];
+
+      const rulesRows = [
+        ["Rule", "Workbook treatment"],
+        ["FDR", "5% of opening market value plus quick sale adjustment."],
+        ["FDR quick sale", "Lesser of peak holding method amount and actual gain."],
+        ["Peak holding method amount", "5% x peak holding differential x average cost."],
+        ["CV", "Closing market value plus gains, less opening market value plus costs."],
+        ["Cost method", "5% of cost-method opening value plus peak holding method amount."],
+        ["Disclaimer", "Calculation aid only. Confirm FIF applicability, exemptions, method availability, currency conversion, credits and disclosure requirements."]
+      ];
+
+      const html = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="utf-8"><style>td,th{border:1px solid #999;padding:4px;}th{background:#0f766e;color:#fff;}</style></head>
+        <body>
+          ${sheetHtml("Summary", summaryRows)}
+          ${sheetHtml("Transactions", transactionRows)}
+          ${sheetHtml("Rules", rulesRows)}
+        </body></html>`;
+      download("NZ_FIF_calculator_results.xls", html, "application/vnd.ms-excel;charset=utf-8");
+    }
+
+    function sheetHtml(title, rows) {
+      return `<h2>${escapeHtml(title)}</h2><table>${rows.map((row, index) => `<tr>${row.map((cell) => index === 0 ? `<th>${escapeHtml(cell)}</th>` : `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}</table><br>`;
+    }
+
+    document.getElementById("sampleBtn").addEventListener("click", loadExample);
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      holdings = [];
+      transactions = [];
+      els.csvText.value = "";
+      render();
+    });
+    document.getElementById("addHoldingBtn").addEventListener("click", () => addHolding());
+    document.getElementById("parseTextBtn").addEventListener("click", () => {
+      transactions = parseCsv(els.csvText.value);
+      const names = [...new Set(transactions.map((tx) => tx.investmentName))];
+      names.forEach((name) => {
+        if (!holdings.some((holding) => holding.investmentName.toLowerCase() === name.toLowerCase())) addHolding({ investmentName: name });
+      });
+      render();
+    });
+    document.getElementById("downloadSampleBtn").addEventListener("click", () => download("sample-fif-transactions.csv", sampleTransactions, "text/csv;charset=utf-8"));
+    document.getElementById("exportBtn").addEventListener("click", exportExcel);
+
+    els.csvFile.addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const text = await file.text();
+      els.csvText.value = text;
+      transactions = parseCsv(text);
+      const names = [...new Set(transactions.map((tx) => tx.investmentName))];
+      names.forEach((name) => {
+        if (!holdings.some((holding) => holding.investmentName.toLowerCase() === name.toLowerCase())) addHolding({ investmentName: name });
+      });
+      render();
+    });
+
+    els.holdingsBody.addEventListener("input", (event) => {
+      const target = event.target;
+      const index = Number(target.dataset.holding);
+      const field = target.dataset.field;
+      if (!Number.isInteger(index) || !field) return;
+      holdings[index][field] = target.value;
+      renderResults(calculateAll());
+    });
+
+    els.holdingsBody.addEventListener("change", (event) => {
+      const target = event.target;
+      const index = Number(target.dataset.holding);
+      const field = target.dataset.field;
+      if (!Number.isInteger(index) || !field) return;
+      holdings[index][field] = target.value;
+      renderResults(calculateAll());
+    });
+
+    els.holdingsBody.addEventListener("click", (event) => {
+      const index = Number(event.target.dataset.remove);
+      if (!Number.isInteger(index)) return;
+      holdings.splice(index, 1);
+      render();
+    });
+
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.panel).classList.add("active");
+      });
+    });
+
+    loadExample();
+  </script>
+</body>
+</html>
